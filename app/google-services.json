@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "691970744579",
+    "firebase_url": "https://suaraku-df217.firebaseio.com",
+    "project_id": "suaraku-df217",
+    "storage_bucket": "suaraku-df217.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:691970744579:android:17912c8d27d23c255a4936",
+        "android_client_info": {
+          "package_name": "net.soradigital.suaraku"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "691970744579-gtdrt0r77rnb8capfgq8ln6et1eb8gcp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBilpmfX39mjyhT6M1yeS9avlFVvsTC8Qk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "691970744579-gtdrt0r77rnb8capfgq8ln6et1eb8gcp.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

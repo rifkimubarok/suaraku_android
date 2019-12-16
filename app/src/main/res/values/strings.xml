@@ -1,0 +1,65 @@
+<resources>
+    <string name="app_name">Suaraku</string>
+    <string name="username">Username</string>
+    <string name="password">Password</string>
+    <string name="login">MASUK</string>
+    <string name="daftar">DAFTAR DISINI</string>
+    <string name="login_email_hint">Email</string>
+    <string name="login_password_hint">Password</string>
+    <string name="nohp">Nomor ponsel</string>
+    <string name="register">DAFTAR</string>
+    <string name="sign">MASUK DISINI</string>
+    <string name="exa_username">Cth: User</string>
+    <string name="provinsi">Provinsi</string>
+    <string name="kabkota">Kabupaten / Kota</string>
+    <string name="exa_nohp">081322556677</string>
+    <string name="rujukan">ID Rujukan</string>
+    <string name="exa_rujukan">SRK002</string>
+    <string name="text_signup">Lengkapi data dibawah ini</string>
+    <string name="verifikasi">Kode verifikasi</string>
+    <string name="h1_verifikasi">Verifikasi</string>
+    <string name="txt_otp_title">Masukan kode verifikasi yang kami kirim SMS ke nomor +628531411678</string>
+    <string name="resend_verifikasi">Kirim ulang</string>
+    <string name="h1_akun">Profile</string>
+    <string name="password_aktif">Password aktif</string>
+    <string name="password_baru">Password baru</string>
+    <string name="password_konfirmasi">Konfirmasi password</string>
+    <string name="password_ulang">Ulangi password baru</string>
+    <string name="simpan">Simpan</string>
+    <string name="open">Open</string>
+    <string name="close">Close</string>
+    <string name="profil">Profil</string>
+    <string name="term_service">Daftarkan relasi anda dengan memasukan username dan Nomor ponsel mereka.
+    SMS akan terkirim ke nomornya beserta link aplikasi ini untuk memudahkan mereka mengunduh dan memasang aplikasi ini.
+    \n\n
+    Username Tidak dapat diganti, pastikan anda telah mengomunikasikannya dengan yang bersangkutan,
+    karena kami menganggap bahwa anda telah mengomunikasikannya dengan yang bersangkutan.</string>
+    <string name="syarat_ketentuan">Syarat &amp; Ketentuan</string>
+    <string name="kirimundangan">Kirim undangan</string>
+    <string name="lengkapi_data">Lengkapi Data Diri Anda</string>
+    <string name="text_nik">Nomor Induk Kependudukan (NIK)</string>
+    <string name="exa_nik">3201151019920001</string>
+    <string name="nama_lengkap">Nama Lengkap</string>
+    <string name="exa_fullname">Budi Sentosa</string>
+    <string name="tempat_lahir">Tempat Lahir</string>
+    <string name="exa_tempatlahir">Tasikmalaya</string>
+    <string name="tgl_lahir">Tanggal Lahir</string>
+    <string name="exa_tgl_lahir">1990-01-01</string>
+    <string name="jenis_kelamin">Jenis Kelamin</string>
+    <string name="stat_pernikahan">Status Pernikahan</string>
+    <string name="label_alamat">Alamat</string>
+    <string name="exa_alamat">Jl. Kampung No.</string>
+    <string name="kecamatan">Kecamatan</string>
+    <string name="desa_kel">Desa / Kelurahan</string>
+    <string name="rt_rw">RT / RW</string>
+    <string name="exa_rt">001</string>
+    <string name="exa_r2">005</string>
+    <string name="save_profile">Simpan</string>
+    <string name="home_title">Beranda</string>
+    <string name="profile">Profile</string>
+    <string name="keluarga">Anggota Keluarga</string>
+    <string name="reward">Hadiah</string>
+    <string name="jenis_org">Jenis Organisasi</string>
+    <string name="pilih_org">Pilih Organisasi</string>
+    <string name="pilih_relawan">Pilih Wadah Relawan</string>
+</resources>

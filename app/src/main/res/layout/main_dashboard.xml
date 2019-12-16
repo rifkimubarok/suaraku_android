@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/content_dashboard"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+        <androidx.core.widget.NestedScrollView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginBottom="?actionBarSize">
+            <LinearLayout
+
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center_horizontal"
+                android:orientation="vertical">
+                <com.google.android.material.appbar.AppBarLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/whiteSmoke">
+
+                    <androidx.appcompat.widget.Toolbar
+                        android:id="@+id/toolbar"
+                        android:layout_width="match_parent"
+                        android:layout_height="?attr/actionBarSize"
+                        android:background="@color/white"
+                        app:titleTextColor="@color/colorPrimaryDark"
+                        app:popupTheme="@style/noTopBar.PopupOverlay">
+                        <RelativeLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="match_parent">
+                            <ImageView
+                                android:layout_width="150dp"
+                                android:layout_height="wrap_content"
+                                android:src="@drawable/nav_logo"/>
+                            <RelativeLayout
+                                android:id="@+id/layout_notification"
+                                android:layout_width="50dp"
+                                android:layout_height="match_parent"
+                                android:layout_marginEnd="5dp"
+                                android:layout_toStartOf="@+id/layout_menu">
+                                <FrameLayout
+                                    style="?attr/actionButtonStyle"
+                                    android:layout_width="50dp"
+                                    android:layout_height="50dp"
+                                    android:clipToPadding="false"
+                                    android:focusable="true"
+                                    android:layout_alignParentStart="true"
+                                    android:layout_alignParentTop="true"
+                                    android:layout_alignParentEnd="true"
+                                    android:layout_marginTop="4dp">
+
+                                    <ImageView
+                                        android:layout_width="30dp"
+                                        android:layout_height="31dp"
+                                        android:layout_gravity="center"
+                                        android:src="@drawable/message" />
+
+                                    <TextView
+                                        android:id="@+id/cart_badge"
+                                        android:layout_width="15dp"
+                                        android:layout_height="15dp"
+                                        android:layout_gravity="top|end|right"
+                                        android:layout_marginTop="3dp"
+                                        android:layout_marginEnd="-5dp"
+                                        android:layout_marginRight="-5dp"
+                                        android:background="@drawable/bg_notification"
+                                        android:gravity="center"
+                                        android:padding="3dp"
+                                        android:text="0"
+                                        android:textColor="@android:color/white"
+                                        android:textSize="7sp"
+                                        android:textStyle="bold"/>
+
+                                </FrameLayout>
+                            </RelativeLayout>
+
+                            <RelativeLayout
+                                android:id="@+id/layout_menu"
+                                android:layout_width="50dp"
+                                android:layout_height="match_parent"
+                                android:layout_alignParentRight="true"
+                                android:layout_marginBottom="0dp">
+
+                                <ImageView
+                                    android:id="@+id/btn_menu"
+                                    android:layout_width="30dp"
+                                    android:layout_height="30dp"
+                                    android:layout_alignParentStart="true"
+                                    android:layout_alignParentTop="true"
+                                    android:layout_alignParentEnd="true"
+                                    android:layout_marginStart="8dp"
+                                    android:layout_marginTop="13dp"
+                                    android:layout_marginEnd="8dp"
+                                    android:src="@drawable/menu_2" />
+                            </RelativeLayout>
+                        </RelativeLayout>
+                    </androidx.appcompat.widget.Toolbar>
+                </com.google.android.material.appbar.AppBarLayout>
+
+                <androidx.cardview.widget.CardView
+                    android:layout_width="135dp"
+                    android:layout_height="135dp"
+                    android:layout_marginTop="20dp"
+                    app:cardCornerRadius="4dp"
+                    app:cardElevation="4dp"
+                    android:gravity="center_horizontal|center_vertical"
+                    android:orientation="vertical">
+
+                    <ImageView
+                        android:id="@+id/image_kandidat"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:adjustViewBounds="true"
+                        android:background="@drawable/bg_shadow"
+                        android:scaleType="centerCrop"
+                        android:src="@drawable/noavatar" />
+                </androidx.cardview.widget.CardView>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/rv_menu"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="20dp"
+                    android:padding="10dp"
+                    android:layout_marginRight="20dp"
+                    android:layout_marginLeft="20dp"/>
+
+                <include layout="@layout/layout_berita"/>
+            </LinearLayout>
+        </androidx.core.widget.NestedScrollView>
+
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/navigation"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:background="@drawable/bg_top_line"
+        android:foreground="?attr/selectableItemBackground"
+        app:itemIconTint="@drawable/bot_nav_selector"
+        app:itemTextColor="@drawable/bot_nav_selector"
+        app:labelVisibilityMode="labeled"
+        app:menu="@menu/navigation_home"
+        android:layout_alignParentBottom="true"/>
+</RelativeLayout>

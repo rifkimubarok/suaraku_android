@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_top_line">
+    <androidx.cardview.widget.CardView
+        android:id="@+id/act_show_profile"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
+        >
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="15dp"
+            android:background="@drawable/bg_top_line"
+            >
+            <TextView
+                android:id="@+id/label_nomor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="No."
+                android:textSize="16sp"
+                />
+
+            <TextView
+                android:id="@+id/label_nama"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="10dp"
+                android:layout_marginEnd="15dp"
+                android:layout_toStartOf="@+id/btn_accept"
+                android:layout_toEndOf="@+id/label_nomor"
+                android:layout_toRightOf="@+id/label_nomor"
+                android:text="Nama "
+                android:textColor="@color/contentTextColor"
+                android:textSize="16sp" />
+            <TextView
+                android:id="@+id/label_update"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:text="Proses Registrasi"
+                android:textColor="@color/royalBlue"/>
+            <Button
+                android:id="@+id/btn_accept"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minHeight="20dp"
+                android:textSize="10sp"
+                android:layout_marginRight="5dp"
+                android:text="Setujui"
+                android:layout_toStartOf="@+id/btn_reject"
+                android:background="@drawable/button_backgroud_blue"
+                android:textColor="@color/white"
+                />
+
+            <Button
+                android:id="@+id/btn_reject"
+                style="?android:attr/buttonStyleSmall"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:minHeight="20dp"
+                android:textSize="10sp"
+                android:layout_marginRight="5dp"
+                android:text="Tolak"
+                android:layout_alignParentRight="true"
+                android:background="@drawable/button_background_red"
+                android:textColor="@color/white"
+                />
+        </RelativeLayout>
+    </androidx.cardview.widget.CardView>
+</RelativeLayout>

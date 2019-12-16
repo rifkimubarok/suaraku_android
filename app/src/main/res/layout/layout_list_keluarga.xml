@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@drawable/bg_top_line">
+    <androidx.cardview.widget.CardView
+        android:id="@+id/cv_see_family"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clickable="true"
+        android:focusable="true"
+        android:foreground="?attr/selectableItemBackground"
+        >
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="15dp"
+            android:background="@drawable/bg_top_line"
+            >
+            <TextView
+                android:id="@+id/label_nomor"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="No."
+                android:textSize="16sp"
+                />
+            <TextView
+                android:id="@+id/label_nama"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_toRightOf="@+id/label_nomor"
+                android:text="Nama Keluarga anda"
+                android:layout_marginLeft="10dp"
+                android:textSize="16sp"
+                android:textColor="@color/contentTextColor"
+                />
+            <TextView
+                android:id="@+id/label_update"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_alignParentRight="true"
+                android:text="PERBAHARUI"
+                android:textColor="@color/royalBlue"
+                android:visibility="gone"/>
+        </RelativeLayout>
+    </androidx.cardview.widget.CardView>
+</RelativeLayout>
