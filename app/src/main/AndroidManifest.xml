@@ -2,6 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="net.soradigital.suaraku">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+
     <application
         android:name=".helper.RequestAdapter"
         android:allowBackup="true"
@@ -11,7 +15,8 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
-        <activity android:name=".ProfileWebActivity"></activity>
+        <activity android:name=".KeluargaWebActivity"></activity>
+        <activity android:name=".ProfileWebActivity" />
         <activity android:name=".PasswordChangeActivity" />
         <activity
             android:name=".VIsiMisiActivity"
@@ -68,9 +73,5 @@
             android:name=".LoginActivity"
             android:screenOrientation="portrait" />
     </application>
-    <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
-
-    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 
 </manifest>

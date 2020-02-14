@@ -136,7 +136,7 @@ public class TambahKeluargaActivity extends AppCompatActivity {
         } catch (JSONException e) {
             e.printStackTrace();
         }
-
+        jk_laki.setChecked(true);
         if (getIntent().getExtras() != null){
             try{
                 Bundle bundle = getIntent().getExtras();

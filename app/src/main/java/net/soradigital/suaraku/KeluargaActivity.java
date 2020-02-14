@@ -5,6 +5,8 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -54,7 +56,7 @@ public class KeluargaActivity extends AppCompatActivity {
         toolbar.setNavigationOnClickListener(v -> onBackPressed());
         toolbar.setTitleTextColor(getResources().getColor(R.color.colorPrimaryDark));
 
-        setTitle("Anggota Keluarga");
+        setTitle("Keluarga & Relasi");
 
         recyclerView.setHasFixedSize(true);
 
@@ -87,13 +89,27 @@ public class KeluargaActivity extends AppCompatActivity {
 
         load_data_family();
         btn_add.setOnClickListener(v->{
-            Intent intent = new Intent(KeluargaActivity.this,TambahKeluargaActivity.class);
+            Intent intent = new Intent(KeluargaActivity.this,KeluargaWebActivity.class);
             intent.putExtra("PEM_PARENT",PEM_PARENT);
             intent.putExtra("title","");
             intent.putExtra("noreg","");
             intent.putExtra("statusSave",0);
             startActivity(intent);
         });
+    }
+
+    public void openDialog(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Informasi");
+        builder.setMessage("Anda baru bisa menambahkan Keluarga & Relasi setelah melengkapi Profile.");
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                onBackPressed();
+            }
+        });
+        AlertDialog dialogconfirm = builder.create();
+        dialogconfirm.show();
     }
 
     public void load_data_family(){
@@ -106,11 +122,14 @@ public class KeluargaActivity extends AppCompatActivity {
             String ACC_KOWIL = session.getString("ACC_KOWIL");
             String url = apiHelper.getUrl()+"&datatype=profile&cmd=getfamily&PEM_NOREG="+ACC_NOREG+"&regcode="+ACC_KOWIL;
             url = url.replaceAll(" ", "%20");
+            Log.d(TAG,url);
             JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET,url,null,response->{
                 try{
-
+                    dialog.hideDialog();
                     if(response.has("PEM_INDEX")){
                         PEM_PARENT = response.getString("PEM_INDEX");
+                    }else{
+                        openDialog();
                     }
                     if (response.has("data")){
                         if(response.has("PEM_INDEX")){
@@ -137,7 +156,6 @@ public class KeluargaActivity extends AppCompatActivity {
                             personArrayList.add(person);
                             refresh_adapter();
                         }
-                        dialog.hideDialog();
                     }
                 }catch (Exception e){
                     dialog.hideDialog();

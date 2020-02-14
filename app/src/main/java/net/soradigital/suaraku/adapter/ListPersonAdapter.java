@@ -11,6 +11,7 @@ import androidx.annotation.NonNull;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
+import net.soradigital.suaraku.KeluargaWebActivity;
 import net.soradigital.suaraku.R;
 import net.soradigital.suaraku.TambahKeluargaActivity;
 import net.soradigital.suaraku.classes.Person;
@@ -39,7 +40,7 @@ public class ListPersonAdapter extends RecyclerView.Adapter<ListPersonAdapter.Li
         holder.text_no.setText(nomor);
         holder.text_nama.setText(person.getNama());
         holder.cv_see_family.setOnClickListener(v->{
-            Intent intent = new Intent(context, TambahKeluargaActivity.class);
+            Intent intent = new Intent(context, KeluargaWebActivity.class);
             intent.putExtra("noreg",person.getAcc_noreg());
             intent.putExtra("title","Ubah Data Keluarga");
             intent.putExtra("PEM_PARENT",PEM_PARENT);

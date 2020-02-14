@@ -44,7 +44,7 @@
     <string name="tempat_lahir">Tempat Lahir</string>
     <string name="exa_tempatlahir">Tasikmalaya</string>
     <string name="tgl_lahir">Tanggal Lahir</string>
-    <string name="exa_tgl_lahir">1990-01-01</string>
+    <string name="exa_tgl_lahir">YYYY-MM-DD</string>
     <string name="jenis_kelamin">Jenis Kelamin</string>
     <string name="stat_pernikahan">Status Pernikahan</string>
     <string name="label_alamat">Alamat</string>
@@ -62,4 +62,5 @@
     <string name="jenis_org">Jenis Organisasi</string>
     <string name="pilih_org">Pilih Organisasi</string>
     <string name="pilih_relawan">Pilih Wadah Relawan</string>
+    <string name="keluargaSaudara"><![CDATA[Keluarga & Relasi]]></string>
 </resources>
