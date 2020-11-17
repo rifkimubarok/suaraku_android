@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.View;
 import android.webkit.WebView;
 
+import net.soradigital.suaraku.helper.ApiHelper;
 import net.soradigital.suaraku.helper.SessionManager;
 
 import org.json.JSONObject;
@@ -39,12 +40,12 @@ public class VIsiMisiActivity extends AppCompatActivity {
         });
         toolbar.setTitleTextColor(getResources().getColor(R.color.colorPrimaryDark));
         setTitle("Profil Calon");
-
+        ApiHelper api = new ApiHelper();
         HashMap<String,String> session = sessionManager.get_session(sessionManager.LOGIN_SESSION);
         try {
             sessionObj = new JSONObject(session.get("data"));
             String reg_code = sessionObj.getString("PEM_KOWIL");
-            String url = "http://suaraku.soradigital.net/index.php?req=api&key=21232f297a57a5a743894a0e4a801fc3&datatype=profile&cmd=get_profile_candidate&regcode="+reg_code;
+            String url = api.getBase_url() + "index.php?req=api&key=21232f297a57a5a743894a0e4a801fc3&datatype=profile&cmd=get_profile_candidate&regcode="+reg_code;
             webView.getSettings().setAllowFileAccess(true);
             webView.getSettings().setAllowContentAccess(true);
             webView.getSettings().setJavaScriptEnabled(true);

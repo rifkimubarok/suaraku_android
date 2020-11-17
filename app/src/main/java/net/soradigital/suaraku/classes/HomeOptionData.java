@@ -9,7 +9,7 @@ public class HomeOptionData {
         "Profil Calon",
         "Tambah pendukung",
         "Rekap dukungan",
-//        "Raihan suara",
+        "Raihan suara",
 //        "Scan QR"
     };
 

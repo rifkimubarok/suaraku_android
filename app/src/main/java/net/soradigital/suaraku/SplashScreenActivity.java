@@ -26,8 +26,8 @@ public class SplashScreenActivity extends AppCompatActivity {
 
             @Override
             public void onFinish() {
-                HashMap<String,String> session = sessionManager.get_session(sessionManager.LOGIN_SESSION);
-                if (session.get("status").equals("1")){
+                String session = sessionManager.getSessionString("token");
+                if (session.length() > 0){
                     Intent intent = new Intent(SplashScreenActivity.this,DashboardActivity.class);
                     startActivity(intent);
                     intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);

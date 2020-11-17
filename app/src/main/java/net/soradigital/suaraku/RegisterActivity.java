@@ -1,24 +1,38 @@
 package net.soradigital.suaraku;
 
 import android.content.Intent;
+import android.nfc.Tag;
+import android.os.Build;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.text.method.HideReturnsTransformationMethod;
+import android.text.method.PasswordTransformationMethod;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatCheckBox;
 import androidx.appcompat.widget.Toolbar;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
 import com.bumptech.glide.Glide;
+import com.google.gson.Gson;
 
 import net.soradigital.suaraku.adapter.SpinnerAdapter;
+import net.soradigital.suaraku.api.AuthService;
+import net.soradigital.suaraku.api.CandidateService;
+import net.soradigital.suaraku.api.RegionService;
+import net.soradigital.suaraku.api.RetrofitClientInstance;
 import net.soradigital.suaraku.classes.City;
 import net.soradigital.suaraku.classes.Province;
 import net.soradigital.suaraku.helper.ApiHelper;
@@ -26,12 +40,20 @@ import net.soradigital.suaraku.helper.CustomDialog;
 import net.soradigital.suaraku.helper.RequestAdapter;
 import net.soradigital.suaraku.helper.SessionManager;
 import net.soradigital.suaraku.helper.ValidationHelper;
+import net.soradigital.suaraku.model.Candidate;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class RegisterActivity extends AppCompatActivity {
 
@@ -43,7 +65,8 @@ public class RegisterActivity extends AppCompatActivity {
     ArrayList<String> list_provinsi,list_kabupaten;
     ArrayList<Province> list_provinsi_map;
     ArrayList<City> list_kabupaten_map;
-    EditText txt_username,txt_no_hp,txt_ref_id;
+    EditText txt_username,txt_no_hp,txt_ref_id, txt_input_password;
+    AppCompatCheckBox showPassword;
     int have_candidate=0;
     ApiHelper apiHelper;
     CustomDialog dialog;
@@ -51,6 +74,11 @@ public class RegisterActivity extends AppCompatActivity {
     private int isCandidateAvailable=0;
     SessionManager sessionManager;
     String TAG = RegisterActivity.class.getSimpleName();
+    RegionService regionService;
+    CandidateService candidateService;
+    AuthService authService;
+    private String pem_code = "";
+    AlertDialog.Builder dialogbuilder;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,11 +93,18 @@ public class RegisterActivity extends AppCompatActivity {
         txt_username = (EditText) findViewById(R.id.txt_input_username);
         txt_no_hp = (EditText) findViewById(R.id.txt_input_nohp);
         txt_ref_id = (EditText) findViewById(R.id.txt_input_rujukan);
+        txt_input_password = (EditText) findViewById(R.id.txt_input_password);
+        showPassword = (AppCompatCheckBox) findViewById(R.id.showPassword);
         validation = new ValidationHelper(this);
         sessionManager = new SessionManager(this);
 
         apiHelper = new ApiHelper();
         dialog = new CustomDialog(this);
+        dialogbuilder = new AlertDialog.Builder(this);
+
+        regionService = RetrofitClientInstance.getRetrofitInstance().create(RegionService.class);
+        candidateService = RetrofitClientInstance.getRetrofitInstance().create(CandidateService.class);
+        authService = RetrofitClientInstance.getRetrofitInstance().create(AuthService.class);
 
         setSupportActionBar(toolbar);
         getSupportActionBar().setDisplayShowHomeEnabled(true);
@@ -84,6 +119,43 @@ public class RegisterActivity extends AppCompatActivity {
         setTitle("Pendaftaran");
         btn_register.setOnClickListener(act_register);
         load_spinner();
+
+        TextWatcher usernameValidator = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+
+            }
+
+            @Override
+            public void onTextChanged(CharSequence charSequence, int i, int i1, int i2) {
+                String str = charSequence.toString();
+                if(str.length() > 0 && str.contains(" "))
+                {
+                    String username = txt_username.getText().toString();
+                    String fix_username = username.replace(" ","");
+                    txt_username.setText(fix_username);
+                    txt_username.setSelection(fix_username.length());
+                }
+
+            }
+
+            @Override
+            public void afterTextChanged(Editable editable) {
+
+            }
+        };
+        txt_username.addTextChangedListener(usernameValidator);
+
+        showPassword.setOnCheckedChangeListener((compoundButton, isChecked) -> {
+            if (!isChecked) {
+                // hide password
+                txt_input_password.setTransformationMethod(PasswordTransformationMethod.getInstance());
+
+            } else {
+                // show password
+                txt_input_password.setTransformationMethod(HideReturnsTransformationMethod.getInstance());
+            }
+        });
     }
 
 
@@ -109,11 +181,16 @@ public class RegisterActivity extends AppCompatActivity {
 
 //        set adapter to spinner
         spn_provinsi.setAdapter(adapter_provinsi);
+        spn_kabupaten.setAdapter(adapter_kabupaten);
+
         spn_provinsi.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                 Province province = list_provinsi_map.get(position);
-                get_kabupaten_data(province.getPrv_kowil());
+                spn_kabupaten.setSelection(0);
+                if(!province.getPrv_kowil().isEmpty()){
+                    get_kabupaten_data(province.getPrv_kowil());
+                }
             }
 
             @Override
@@ -122,11 +199,10 @@ public class RegisterActivity extends AppCompatActivity {
             }
         });
 
-        spn_kabupaten.setAdapter(adapter_kabupaten);
         spn_kabupaten.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                if (position>=0){
+                if (position>0){
                     City city = list_kabupaten_map.get(position);
                     if (!city.getKab_kowil().isEmpty()){
                         get_kandidat_data(city.getKab_kowil());
@@ -151,131 +227,130 @@ public class RegisterActivity extends AppCompatActivity {
         }else{
             do_regis();
         }
-//        Intent intent = new Intent(getApplicationContext(),VerifikasiActivity.class);
-//        startActivity(intent);
     };
 
 //    method get provinsi
     public void get_provinsi_data(){
         dialog.showDialog();
-        String url = apiHelper.getUrl()+"&datatype=region&region=province&cmd=getlist";
-        url = url.replaceAll(" ", "%20");
-        JsonObjectRequest request1 = new JsonObjectRequest(Request.Method.GET, url, null,
-                response -> {
-            dialog.hideDialog();
-//            check if result have province
-                    if (response.has("province")){
-//                        list_provinsi.clear();
-                        try {
-//                            push data to adapter
-                            JSONArray provinsi = response.getJSONArray("province");
-                            for (int i=0;i<provinsi.length();i++){
-                                JSONObject obj_provinsi = provinsi.getJSONObject(i);
-                                list_provinsi.add(obj_provinsi.getString("prv_nama"));
-                                Province province = new Province();
-                                province.setPrv_idx(obj_provinsi.getString("prv_idx"));
-                                province.setPrv_dapil(obj_provinsi.getString("prv_dapil"));
-                                province.setPrv_kowil(obj_provinsi.getString("prv_kowil"));
-                                province.setPrv_nama(obj_provinsi.getString("prv_nama"));
-                                list_provinsi_map.add(province);
-                            }
-                            adapter_provinsi.notifyDataSetChanged();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+
+        Call<HashMap<String, Object>> call = regionService.province();
+
+        call.enqueue(new Callback<HashMap<String, Object>>() {
+            @Override
+            public void onResponse(Call<HashMap<String, Object>> call, Response<HashMap<String, Object>> response) {
+                Boolean success = Boolean.parseBoolean(response.body().get("success").toString());
+                String message = response.body().get("message").toString();
+
+                if (success) {
+                    ArrayList<Map<String, String>> data = (ArrayList<Map<String, String>>) response.body().get("data");
+
+                    for (int i= 0; i < data.size(); i++){
+                        Map<String, String> obj_provinsi = data.get(i);
+                        list_provinsi.add(obj_provinsi.get("prv_nama"));
+                        Province province = new Province();
+                        province.setPrv_idx("");
+                        province.setPrv_dapil("");
+                        province.setPrv_kowil(obj_provinsi.get("prv_kowil"));
+                        province.setPrv_nama(obj_provinsi.get("prv_nama"));
+                        list_provinsi_map.add(province);
                     }
-                },
-                (error)->{
-                    dialog.hideDialog();
-                    Toast.makeText(getApplicationContext(),"Terjadi Kesalahan.",Toast.LENGTH_SHORT).show();
-                });
-        request1.setShouldCache(false);
-        RequestAdapter.getInstance().addToRequestQueue(request1);
+                    adapter_provinsi.notifyDataSetChanged();
+                }else{
+                    dialog.createToast(message + success);
+                }
+                dialog.hideDialog();
+            }
+
+            @Override
+            public void onFailure(Call<HashMap<String, Object>> call, Throwable t) {
+                dialog.hideDialog();
+                dialog.createToast("Terjadi Kesalahan");
+            }
+        });
     }
 
-    public void get_kabupaten_data(String provinsi_kode){
-        String url = apiHelper.getUrl()+"&datatype=region&region=city&cmd=getlist&regcode="+provinsi_kode;
-        url = url.replaceAll(" ", "%20");
-        JsonObjectRequest request1 = new JsonObjectRequest(Request.Method.GET, url, null,
-                response -> {
-                    if (response.has("city")){
-                        list_kabupaten_map.clear();
-                        list_kabupaten.clear();
-                        list_kabupaten.add("Pilih Kabupaten/Kota");
-                        City cit = new City();
-                        cit.setKab_kowil("");
-                        list_kabupaten_map.add(cit);
-                        try {
-                            JSONArray kabupaten = response.getJSONArray("city");
-                            for (int i=0;i<kabupaten.length();i++){
-                                JSONObject obj_kabupaten = kabupaten.getJSONObject(i);
-                                list_kabupaten.add(obj_kabupaten.getString("kab_nama"));
-                                City city = new City();
-                                city.setKab_idx(obj_kabupaten.getString("kab_idx"));
-                                city.setKab_dapil(obj_kabupaten.getString("kab_dapil"));
-                                city.setKab_kowil(obj_kabupaten.getString("kab_kowil"));
-                                city.setKab_nama(obj_kabupaten.getString("kab_nama"));
-                                list_kabupaten_map.add(city);
-                            }
-                            adapter_kabupaten.notifyDataSetChanged();
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
+    public void get_kabupaten_data(String provinceCode){
+        Call<HashMap<String, Object>> call = regionService.city(provinceCode);
+        list_kabupaten_map.clear();
+        list_kabupaten.clear();
+        list_kabupaten.add("Pilih Kabupaten/Kota");
+        City cit = new City();
+        cit.setKab_kowil("");
+        list_kabupaten_map.add(cit);
+        call.enqueue(new Callback<HashMap<String, Object>>() {
+            @Override
+            public void onResponse(Call<HashMap<String, Object>> call, Response<HashMap<String, Object>> response) {
+                Boolean success = Boolean.parseBoolean(response.body().get("success").toString());
+                String message = response.body().get("message").toString();
+                if (success) {
+                    ArrayList<Map<String, String>> data = (ArrayList<Map<String, String>>) response.body().get("data");
+                    for (int i= 0; i < data.size(); i++){
+                        Map<String, String> objKabupaten = data.get(i);
+                        list_kabupaten.add(objKabupaten.get("kab_nama"));
+                        City city = new City();
+                        city.setKab_idx("");
+                        city.setKab_dapil("");
+                        city.setKab_kowil(objKabupaten.get("kab_kowil"));
+                        city.setKab_nama(objKabupaten.get("kab_nama"));
+                        list_kabupaten_map.add(city);
                     }
-                },
-                (error)->{
-                    Toast.makeText(getApplicationContext(),"Terjadi Kesalahan.",Toast.LENGTH_SHORT).show();
-                });
-        request1.setShouldCache(false);
-        RequestAdapter.getInstance().addToRequestQueue(request1);
+                    adapter_kabupaten.notifyDataSetChanged();
+                }else{
+                    dialog.createToast(message);
+                }
+                dialog.hideDialog();
+            }
+
+            @Override
+            public void onFailure(Call<HashMap<String, Object>> call, Throwable t) {
+
+            }
+        });
     }
 
     public void get_kandidat_data(String kabupaten_code){
         have_candidate = 0;
-        String url_image = apiHelper.getBase_url()+"images/calon/";
-        String url = apiHelper.getUrl()+"&datatype=qcount&cmd=getcandidate&regcode="+kabupaten_code;
-        url = url.replaceAll(" ", "%20");
-        JsonObjectRequest request1 = new JsonObjectRequest(Request.Method.GET, url, null,
-                response -> {
-                    if (response.has("candidate")){
-                        try {
-                            JSONArray kandidat_array = response.getJSONArray("candidate");
-                            if (kandidat_array.length()>0){
-                                have_candidate = 1;
-                                JSONObject kandidat_obj = kandidat_array.getJSONObject(0);
-                                isCandidateAvailable = 1;
-                                Glide.with(this)
-                                        .load(url_image+kandidat_obj.getString("CAN_IMAGE"))
-                                        .placeholder(getResources().getDrawable(R.drawable.noavatar))
-                                        .error(getResources().getDrawable(R.drawable.noavatar))
-                                        .into(image_kandidat);
-                            }
-                        } catch (Exception e) {
-                            isCandidateAvailable = 0;
-                            e.printStackTrace();
-                        }
-                    }else if (response.has("error")){
-                        try {
-                            isCandidateAvailable = 0;
-                            JSONArray error = response.getJSONArray("error");
-                            JSONObject error_obj = error.getJSONObject(0);
-                            Toast.makeText(getApplicationContext(),error_obj.getString("message"),Toast.LENGTH_LONG).show();
-                            Glide.with(this)
-                                    .load(getResources().getDrawable(R.drawable.noavatar))
-                                    .into(image_kandidat);
-                        } catch (JSONException e) {
-                            isCandidateAvailable = 0;
-                            e.printStackTrace();
-                        }
-
-                    }
-                },
-                (error)->{
+        Call<HashMap<String, Object>> call = candidateService.getCandidate(kabupaten_code);
+        call.enqueue(new Callback<HashMap<String, Object>>() {
+            @Override
+            public void onResponse(Call<HashMap<String, Object>> call, Response<HashMap<String, Object>> response) {
+                Boolean success = Boolean.parseBoolean(response.body().get("success").toString());
+                String message = response.body().get("message").toString();
+                if (success) {
+                    Map<String, Object> data = (Map<String, Object>) response.body().get("data");
+                    Map<String, Object> image = (Map<String, Object>) data.get("images");
+                    Gson gson = new Gson();
+                    String json = gson.toJson(data);
+                    Candidate candidate = gson.fromJson(json, Candidate.class);
+                    Glide.with(RegisterActivity.this)
+                            .load(apiHelper.newBaseUrl +  candidate.getImages().getFilename())
+                            .placeholder(getResources().getDrawable(R.drawable.noavatar))
+                            .error(getResources().getDrawable(R.drawable.noavatar))
+                            .into(image_kandidat);
+                    isCandidateAvailable = 1;
+                    have_candidate = 1;
+                    pem_code = data.get("PEM_CODE").toString();
+                }else{
+                    Glide.with(RegisterActivity.this)
+                            .load(getResources().getDrawable(R.drawable.noavatar))
+                            .into(image_kandidat);
+                    dialog.createToast("Tidak Ada Kandidat");
                     isCandidateAvailable = 0;
-                    Toast.makeText(getApplicationContext(),"Terjadi Kesalahan.",Toast.LENGTH_SHORT).show();
-                });
-        request1.setShouldCache(false);
-        RequestAdapter.getInstance().addToRequestQueue(request1);
+                    have_candidate = 0;
+                    pem_code = "";
+                }
+            }
+
+            @Override
+            public void onFailure(Call<HashMap<String, Object>> call, Throwable t) {
+                Glide.with(RegisterActivity.this)
+                        .load(getResources().getDrawable(R.drawable.noavatar))
+                        .into(image_kandidat);
+                dialog.createToast("Tidak Ada Kandidat");
+                isCandidateAvailable = 0;
+                have_candidate = 0;
+            }
+        });
     }
 
     public void do_regis(){
@@ -285,46 +360,54 @@ public class RegisterActivity extends AppCompatActivity {
         String ref_id = txt_ref_id.getText().toString();
         City city = list_kabupaten_map.get(spn_kabupaten.getSelectedItemPosition());
         String reg_code = city.getKab_kowil();
+        String password = txt_input_password.getText().toString();
 
-        String url = apiHelper.getUrl();
-        url += "&datatype=user&cmd=signup&regcode="+reg_code+"&phone="+no_hp+"&refId="+ref_id+"&username="+username;
-        url = url.replaceAll(" ", "%20");
-        JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET,url,null,response -> {
-            Log.d(TAG,response.toString());
-            try{
-               if (response.has("user")){
-                    JSONObject object_data = response.getJSONObject("user");
-                    sessionManager.set_session(object_data.toString(),sessionManager.SIGNUP_SESSION);
-                    dialog.hideDialog();
-                   Intent intent = new Intent(RegisterActivity.this,UpdatePasswordActivity.class);
-                   startActivity(intent);
-               }else{
-                   if (response.has("error")){
-                       JSONArray arr_error = response.getJSONArray("error");
-                       JSONObject obj_error = arr_error.getJSONObject(0);
-                       dialog.hideDialog();
-                       validation.createDialog(obj_error.getString("message"));
-                   }
-               }
-           }catch (Exception e){
-               dialog.hideDialog();
-               e.printStackTrace();
-           }
-        },error -> {
-            dialog.hideDialog();
-            error.printStackTrace();
+        Call<HashMap<String, Object>> call = authService.register(no_hp, ref_id, reg_code, pem_code, username, password, username);
+
+        call.enqueue(new Callback<HashMap<String, Object>>() {
+            @Override
+            public void onResponse(Call<HashMap<String, Object>> call, Response<HashMap<String, Object>> response) {
+                Boolean success = Boolean.parseBoolean(response.body().get("success").toString());
+                String message = response.body().get("message").toString();
+
+                if (success){
+                    dialogbuilder.setMessage("Registrasi Berhasil!\nSilahkan Lanjutkan Login.");
+                    dialogbuilder.setCancelable(false);
+                    dialogbuilder.setPositiveButton("OK", (dialog, which) -> {
+                        Intent intent = new Intent(RegisterActivity.this, LoginActivity.class);
+                        startActivity(intent);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+                        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                        finishAffinity();
+                        finish();
+                    });
+                    AlertDialog alertDialog = dialogbuilder.create();
+                    alertDialog.show();
+                }else{
+                    Map<String, String> data = (Map<String, String>) response.body().get("data");
+                    String error = "";
+                    for(Map.Entry<String, String> entry : data.entrySet()){
+                        error += entry.getKey() + " : " + entry.getValue() + "\n";
+                    }
+                    validation.createDialog(error);
+                }
+                dialog.hideDialog();
+            }
+
+            @Override
+            public void onFailure(Call<HashMap<String, Object>> call, Throwable t) {
+                dialog.hideDialog();
+                dialog.createToast("Terjadi Kesalahan");
+            }
         });
-        request.setShouldCache(false);
-        RequestAdapter.getInstance().addToRequestQueue(request);
     }
 
     public boolean validasi(){
-        boolean username = validation.isTextValid(txt_username,"Username harus diisi.");
-        if(!username)return false;
         boolean no_hp = validation.isTextValid(txt_no_hp,"Nomoh Ponsel harus diisi.");
-        if(!no_hp)return false;
         boolean ref_id = validation.isTextValid(txt_ref_id,"ID Rujukan harus diisi.");
-        if(!ref_id)return false;
+        boolean username = validation.isTextValid(txt_username,"Username harus diisi.");
+        boolean pass = validation.isTextValid(txt_input_password,"Passowrd Harus diisi.");
+        if(!(no_hp && ref_id && username && pass)) return  false;
         Province province = list_provinsi_map.get(spn_provinsi.getSelectedItemPosition());
         if (province.getPrv_kowil().isEmpty()){
             validation.createDialog("Provinsi Harus diisi");

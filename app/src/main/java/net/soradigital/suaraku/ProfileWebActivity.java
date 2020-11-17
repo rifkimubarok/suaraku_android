@@ -47,8 +47,8 @@ public class ProfileWebActivity extends AppCompatActivity {
     static String TAG = WebActivity.class.getSimpleName();
     private JSONObject sessionObj;
     private ApiHelper apiHelper;
-    Toolbar toolbar;
     SessionManager sessionManager;
+    Toolbar toolbar;
     String reg_code = "";
     String acc_noreg = "";
     @Override
@@ -100,17 +100,14 @@ public class ProfileWebActivity extends AppCompatActivity {
                 Bundle bundle = getIntent().getExtras();
                 reg_code = bundle.getString("ACC_KOWIL");
                 acc_noreg = bundle.getString("ACC_NOREG");
-                String url = apiHelper.getUrl()+"&datatype=update_profile&cmd=get_gui_profile&regcode="+reg_code+"&acc_noreg="+acc_noreg+"&readonly=true";
+                String url = apiHelper.newBaseUrl + "dashboard/mobile/set-profile/"+ acc_noreg;
                 webView.loadUrl(url);
             }catch (Exception e){
                 e.printStackTrace();
             }
         }else{
             try {
-                sessionObj = new JSONObject(session.get("data"));
-                String reg_code = sessionObj.getString("ACC_KOWIL");
-                String ACC_NOREG = sessionObj.getString("ACC_NOREG");
-                String url = apiHelper.getUrl()+"&datatype=update_profile&cmd=get_gui_profile&regcode="+reg_code+"&acc_noreg="+ACC_NOREG;
+                String url = apiHelper.newBaseUrl + "dashboard/mobile/set-profile";
                 webView.loadUrl(url);
             }catch (Exception e){
                 e.printStackTrace();

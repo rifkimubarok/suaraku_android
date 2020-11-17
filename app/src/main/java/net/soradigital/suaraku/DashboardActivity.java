@@ -28,17 +28,22 @@ import com.bumptech.glide.Glide;
 import com.google.android.material.bottomnavigation.BottomNavigationMenu;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.gson.Gson;
 
 import net.soradigital.suaraku.adapter.GridHomeOptionAdapter;
 import net.soradigital.suaraku.adapter.GridSpacingItemDecoration;
 import net.soradigital.suaraku.adapter.ListNewsAdapter;
+import net.soradigital.suaraku.api.CandidateService;
+import net.soradigital.suaraku.api.RetrofitClientInstance;
 import net.soradigital.suaraku.classes.HomeOption;
 import net.soradigital.suaraku.classes.HomeOptionData;
 import net.soradigital.suaraku.classes.News;
 import net.soradigital.suaraku.helper.ApiHelper;
+import net.soradigital.suaraku.helper.CustomDialog;
 import net.soradigital.suaraku.helper.GridHelper;
 import net.soradigital.suaraku.helper.RequestAdapter;
 import net.soradigital.suaraku.helper.SessionManager;
+import net.soradigital.suaraku.model.Candidate;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -46,6 +51,11 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class DashboardActivity extends AppCompatActivity {
 
@@ -66,6 +76,11 @@ public class DashboardActivity extends AppCompatActivity {
     GridHelper gridHelper;
     JSONObject sessionObj;
     BottomNavigationView bot_nav;
+    CustomDialog dialog;
+    CandidateService candidateService;
+
+
+    String token = "";
 
 //    LinearLayout layoutBottomSheet;
 //    Button btn_cukcok;
@@ -91,9 +106,12 @@ public class DashboardActivity extends AppCompatActivity {
         image_kandidat = (ImageView) findViewById(R.id.image_kandidat);
         bot_nav = (BottomNavigationView) findViewById(R.id.navigation);
         txt_username = (TextView) findViewById(R.id.txt_username);
+        dialog = new CustomDialog(DashboardActivity.this);
+        candidateService = RetrofitClientInstance.getRetrofitInstance().create(CandidateService.class);
 
         newsArrayList = new ArrayList<>();
         newsAdapter = new ListNewsAdapter(this,newsArrayList);
+        token = sessionManager.get_session("token").toString();
 
         homeOptions.addAll(HomeOptionData.getListData());
 //        btn_cukcok = (Button) findViewById(R.id.btn_login);
@@ -153,17 +171,14 @@ public class DashboardActivity extends AppCompatActivity {
     }
 
     public void prepare_dashboard(){
-        HashMap<String,String> session = sessionManager.get_session(sessionManager.LOGIN_SESSION);
-        try {
-            sessionObj = new JSONObject(session.get("data"));
-            get_kandidat_data(sessionObj.getString("PEM_KOWIL"));
-            txt_username.setText(sessionObj.getString("ACC_ALIAS"));
-        }catch (Exception e){
-            e.printStackTrace();
-        }
+
+        txt_username.setText(sessionManager.getSessionString("name"));
         load_menu();
         load_berita();
+
         bot_nav.setOnNavigationItemSelectedListener(mOnNavigationItemReselectedListener);
+
+        get_kandidat_data();
     }
 
     private BottomNavigationView.OnNavigationItemSelectedListener mOnNavigationItemReselectedListener = menuItem -> {
@@ -184,49 +199,44 @@ public class DashboardActivity extends AppCompatActivity {
         return true;
     };
 
-    public void get_kandidat_data(String kabupaten_code){
-        String url_image = apiHelper.getBase_url()+"images/calon/";
-        String url = apiHelper.getUrl()+"&datatype=qcount&cmd=getcandidate&regcode="+kabupaten_code;
-        url = url.replaceAll(" ", "%20");
-        JsonObjectRequest request1 = new JsonObjectRequest(Request.Method.GET, url, null,
-                response -> {
-                    if (response.has("candidate")){
-                        try {
-                            JSONArray kandidat_array = response.getJSONArray("candidate");
-                            if (kandidat_array.length()>0){
-                                JSONObject kandidat_obj = kandidat_array.getJSONObject(0);
-                                Glide.with(this)
-                                        .load(url_image+kandidat_obj.getString("CAN_IMAGE"))
-                                        .placeholder(getResources().getDrawable(R.drawable.noavatar))
-                                        .error(getResources().getDrawable(R.drawable.noavatar))
-                                        .into(image_kandidat);
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                    }else if (response.has("error")){
-                        try {
-                            JSONArray error = response.getJSONArray("error");
-                            JSONObject error_obj = error.getJSONObject(0);
-                            Toast.makeText(getApplicationContext(),error_obj.getString("message"),Toast.LENGTH_LONG).show();
-                            Glide.with(this)
-                                    .load(getResources().getDrawable(R.drawable.noavatar))
-                                    .into(image_kandidat);
-                        } catch (JSONException e) {
-                            e.printStackTrace();
-                        }
+    public void get_kandidat_data(){
+        String token = sessionManager.getSessionString("token");
+        Call<HashMap<String, Object>> call = candidateService.getCandidate2(token);
+        call.enqueue(new Callback<HashMap<String, Object>>() {
+            @Override
+            public void onResponse(Call<HashMap<String, Object>> call, Response<HashMap<String, Object>> response) {
 
-                    }
-                },
-                (error)->{
-                    Toast.makeText(getApplicationContext(),"Terjadi Kesalahan.",Toast.LENGTH_SHORT).show();
-                });
-        request1.setShouldCache(false);
-        RequestAdapter.getInstance().addToRequestQueue(request1);
+                Boolean success = Boolean.parseBoolean(response.body().get("success").toString());
+                String message = response.body().get("message").toString();
+                if (success) {
+                    Map<String, Object> data = (Map<String, Object>) response.body().get("data");
+                    Map<String, Object> image = (Map<String, Object>) data.get("images");
+                    Gson gson = new Gson();
+                    String json = gson.toJson(data);
+                    Candidate candidate = gson.fromJson(json, Candidate.class);
+                    Glide.with(DashboardActivity.this)
+                            .load(apiHelper.newBaseUrl +  candidate.getImages().getFilename())
+                            .placeholder(getResources().getDrawable(R.drawable.noavatar))
+                            .error(getResources().getDrawable(R.drawable.noavatar))
+                            .into(image_kandidat);
+                }else{
+                    Glide.with(DashboardActivity.this)
+                            .load(getResources().getDrawable(R.drawable.noavatar))
+                            .into(image_kandidat);
+                }
+            }
+
+            @Override
+            public void onFailure(Call<HashMap<String, Object>> call, Throwable t) {
+                Glide.with(DashboardActivity.this)
+                        .load(getResources().getDrawable(R.drawable.noavatar))
+                        .into(image_kandidat);
+            }
+        });
     }
 
     private void logout(){
-        sessionManager.unset_session(sessionManager.LOGIN_SESSION);
+        sessionManager.unset_session("token");
         Intent intent = new Intent(DashboardActivity.this, LoginActivity.class);
         startActivity(intent);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
@@ -237,39 +247,39 @@ public class DashboardActivity extends AppCompatActivity {
 
 
     public void load_berita(){
-        String PEM_CODE = "";
-        try {
-            PEM_CODE = sessionObj.getString("PEM_CODE");
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        String url = apiHelper.getUrl()+"&datatype=news&cmd=get_berita&limit=5&page=1&pem_code="+PEM_CODE;
-        url = url.replaceAll(" ", "%20");
-        JsonObjectRequest request1 = new JsonObjectRequest(Request.Method.GET, url, null,
-            response -> {
-                try{
-                    if (response.has("news")){
-                        newsArrayList.clear();
-                        JSONArray news_arr = response.getJSONArray("news");
-                        for (int i=0;i<news_arr.length();i++){
-                            JSONObject news_obj = news_arr.getJSONObject(i);
-                            News news = new News();
-                            news.setId_berita(news_obj.getInt("id_berita"));
-                            news.setId_kategori(news_obj.getInt("id_kategori"));
-                            news.setJudul(news_obj.getString("judul"));
-                            news.setGambar(news_obj.getString("gambar"));
-                            newsArrayList.add(news);
-                        }
-                        newsAdapter.notifyDataSetChanged();
-                    }
-                }catch (Exception e){
-                    e.printStackTrace();
-                }
-            },
-            error -> {
-
-            }
-        );
-        RequestAdapter.getInstance().addToRequestQueue(request1);
+//        String PEM_CODE = "";
+//        try {
+//            PEM_CODE = sessionObj.getString("PEM_CODE");
+//        } catch (JSONException e) {
+//            e.printStackTrace();
+//        }
+//        String url = apiHelper.getUrl()+"&datatype=news&cmd=get_berita&limit=5&page=1&pem_code="+PEM_CODE;
+//        url = url.replaceAll(" ", "%20");
+//        JsonObjectRequest request1 = new JsonObjectRequest(Request.Method.GET, url, null,
+//            response -> {
+//                try{
+//                    if (response.has("news")){
+//                        newsArrayList.clear();
+//                        JSONArray news_arr = response.getJSONArray("news");
+//                        for (int i=0;i<news_arr.length();i++){
+//                            JSONObject news_obj = news_arr.getJSONObject(i);
+//                            News news = new News();
+//                            news.setId_berita(news_obj.getInt("id_berita"));
+//                            news.setId_kategori(news_obj.getInt("id_kategori"));
+//                            news.setJudul(news_obj.getString("judul"));
+//                            news.setGambar(news_obj.getString("gambar"));
+//                            newsArrayList.add(news);
+//                        }
+//                        newsAdapter.notifyDataSetChanged();
+//                    }
+//                }catch (Exception e){
+//                    e.printStackTrace();
+//                }
+//            },
+//            error -> {
+//
+//            }
+//        );
+//        RequestAdapter.getInstance().addToRequestQueue(request1);
     }
 }

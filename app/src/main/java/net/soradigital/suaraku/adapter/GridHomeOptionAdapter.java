@@ -17,6 +17,7 @@ import com.bumptech.glide.request.RequestOptions;
 
 import net.soradigital.suaraku.AddSupporterActivity;
 import net.soradigital.suaraku.InviteActivity;
+import net.soradigital.suaraku.PerhitunganSuara;
 import net.soradigital.suaraku.R;
 import net.soradigital.suaraku.RecapActivity;
 import net.soradigital.suaraku.RewardActivity;
@@ -85,6 +86,10 @@ public class GridHomeOptionAdapter extends RecyclerView.Adapter<GridHomeOptionAd
             case "rekap_dukungan" :
                 Intent rekap_dukungan = new Intent(context, RecapActivity.class);
                 context.startActivity(rekap_dukungan);
+                break;
+            case "perolehan" :
+                Intent perolehan = new Intent(context, PerhitunganSuara.class);
+                context.startActivity(perolehan);
                 break;
 
             case "profile_calon" :

@@ -47,6 +47,19 @@ public class SessionManager {
         return session;
     }
 
+    public String getSessionString(String sessionName){
+        String session = "";
+        try{
+            FileCacher<String> fileCacher = new FileCacher<>(context,sessionName);
+            if (fileCacher.hasCache()){
+                session = fileCacher.readCache().toString();
+            }
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return session;
+    }
+
     public void unset_session(String session_name){
         try {
             FileCacher<String> fileCacher = new FileCacher<>(context,session_name);

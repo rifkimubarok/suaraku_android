@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Dialog;
 import android.view.Window;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.request.RequestOptions;
@@ -51,4 +52,7 @@ public class CustomDialog {
         dialog.dismiss();
     }
 
+    public void createToast(String message){
+        Toast.makeText(this.activity, message, Toast.LENGTH_SHORT).show();
+    }
 }

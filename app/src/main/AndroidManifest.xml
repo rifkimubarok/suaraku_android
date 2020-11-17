@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="net.soradigital.suaraku">
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        tools:node="replace" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
         android:name=".helper.RequestAdapter"
@@ -15,7 +20,12 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme"
         android:usesCleartextTraffic="true">
-        <activity android:name=".KeluargaWebActivity"></activity>
+        <activity android:name=".SsoActivity"></activity>
+        <activity
+            android:name=".PerhitunganSuara"
+            android:label="@string/title_activity_perhitungan_suara"
+            android:theme="@style/AppTheme.NoActionBar" />
+        <activity android:name=".KeluargaWebActivity" />
         <activity android:name=".ProfileWebActivity" />
         <activity android:name=".PasswordChangeActivity" />
         <activity

@@ -7,17 +7,17 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Environment;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 
 import com.android.volley.Request;
 import com.android.volley.toolbox.JsonObjectRequest;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.gson.Gson;
 
 import net.soradigital.suaraku.adapter.ListInviteAdapter;
+import net.soradigital.suaraku.api.RetrofitClientInstance;
+import net.soradigital.suaraku.api.SupporterService;
 import net.soradigital.suaraku.classes.Account;
 import net.soradigital.suaraku.helper.ApiHelper;
 import net.soradigital.suaraku.helper.CustomDialog;
@@ -25,12 +25,15 @@ import net.soradigital.suaraku.helper.RequestAdapter;
 import net.soradigital.suaraku.helper.SessionManager;
 
 import org.json.JSONArray;
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class InviteActivity extends AppCompatActivity {
     Toolbar toolbar;
@@ -44,6 +47,7 @@ public class InviteActivity extends AppCompatActivity {
     ApiHelper apiHelper;
     CustomDialog dialog;
     ListInviteAdapter listInviteAdapter;
+    SupporterService supporterService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,6 +68,7 @@ public class InviteActivity extends AppCompatActivity {
         sessionManager = new SessionManager(this);
         apiHelper = new ApiHelper();
         dialog = new CustomDialog(this);
+        supporterService = RetrofitClientInstance.getRetrofitInstance().create(SupporterService.class);
 
         prepare_activity();
     }
@@ -88,45 +93,33 @@ public class InviteActivity extends AppCompatActivity {
             accountArrayList.clear();
         }
         dialog.showDialog();
-        try {
-            String url = apiHelper.getUrl()+"&datatype=user&cmd=getuserinvite&ACC_REFF_ID=";
-            String ACC_REFF_ID = session.getString("ACC_REFF_ID");
-            url+= ACC_REFF_ID;
-            url = url.replaceAll(" ", "%20");
-            JsonObjectRequest request = new JsonObjectRequest(Request.Method.GET,url,null,response -> {
-                try{
-                    if (response.has("data")){
-                        JSONArray arr_user = response.getJSONArray("data");
-                        for (int i=0;i<arr_user.length();i++){
-                            JSONObject obj_user = arr_user.getJSONObject(i);
-                            Account account = new Account();
-                            account.setACC_INDEX(obj_user.getString("ACC_INDEX"));
-                            account.setACC_ALIAS(obj_user.getString("ACC_ALIAS"));
-                            account.setACC_STATUS(obj_user.getInt("ACC_STATUS"));
-                            account.setACC_DATEREG(obj_user.getString("ACC_DATEREG"));
-                            account.setACC_EMAIL(obj_user.getString("ACC_EMAIL"));
-                            account.setACC_NOREG(obj_user.getString("ACC_NOREG"));
-                            account.setACC_KOWIL(obj_user.getString("ACC_KOWIL"));
-                            accountArrayList.add(account);
-                        }
-                        refresh_adapter();
-                        dialog.hideDialog();
-                    }
-                }catch (Exception e){
-                    e.printStackTrace();
-                    dialog.hideDialog();
-                }
-            },error -> {
+        String token = sessionManager.getSessionString("token");
+        Call<HashMap<String, Object>> call = supporterService.invited(token);
+        call.enqueue(new Callback<HashMap<String, Object>>() {
+            @Override
+            public void onResponse(Call<HashMap<String, Object>> call, Response<HashMap<String, Object>> response) {
+                String message = response.body().get("message").toString();
+                Boolean success = Boolean.parseBoolean(response.body().get("success").toString());
                 dialog.hideDialog();
-               error.printStackTrace();
-            });
 
-            RequestAdapter.getInstance().addToRequestQueue(request);
+                if(success){
+                    ArrayList<Map<String, Object>> data = (ArrayList<Map<String, Object>>) response.body().get("data");
+                    for (int i=0; i < data.size(); i++){
+                        Gson gson = new Gson();
+                        String obj = gson.toJson(data.get(i));
+                        Account acc = gson.fromJson(obj, Account.class);
+                        Log.d(TAG,"Acc Noreg" + acc.getACC_NOREG());
+                        accountArrayList.add(acc);
+                    }
+                    refresh_adapter();
+                }
+            }
 
-        } catch (Exception e) {
-            dialog.hideDialog();
-            e.printStackTrace();
-        }
+            @Override
+            public void onFailure(Call<HashMap<String, Object>> call, Throwable t) {
+
+            }
+        });
     }
 
     public void refresh_adapter(){
@@ -143,7 +136,6 @@ public class InviteActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item){
-        Log.v(TAG,"item menunya "+item.getItemId());
         switch (item.getItemId()){
             case ItemThreeDotMenu:
                 Intent intent = new Intent(InviteActivity.this,AddSupporterActivity.class);

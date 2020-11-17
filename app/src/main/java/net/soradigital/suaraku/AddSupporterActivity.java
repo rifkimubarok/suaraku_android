@@ -9,12 +9,22 @@ import android.widget.TextView;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 
+import com.google.gson.Gson;
+
+import net.soradigital.suaraku.api.CandidateService;
+import net.soradigital.suaraku.api.RetrofitClientInstance;
 import net.soradigital.suaraku.helper.SessionManager;
+import net.soradigital.suaraku.model.Candidate;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.util.HashMap;
+import java.util.Map;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class AddSupporterActivity extends AppCompatActivity {
 
@@ -23,6 +33,8 @@ public class AddSupporterActivity extends AppCompatActivity {
     SessionManager sessionManager;
     Button btn_share;
     String Kode_ajakan;
+    CandidateService candidateService;
+    String shareBody = "";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,26 +51,43 @@ public class AddSupporterActivity extends AppCompatActivity {
         toolbar.setNavigationOnClickListener(v -> onBackPressed());
         toolbar.setTitleTextColor(getResources().getColor(R.color.colorPrimaryDark));
         setTitle("Tambah Pendukung");
-
+        candidateService = RetrofitClientInstance.getRetrofitInstance().create(CandidateService.class);
         Kode_ajakan = "";
         HashMap<String,String> sesi = sessionManager.get_session(sessionManager.LOGIN_SESSION);
-        try{
-            JSONObject obj_sesi = new JSONObject(sesi.get("data"));
-            txt_reff.setText(obj_sesi.getString("ACC_REFF_ID"));
-            Kode_ajakan = obj_sesi.getString("ACC_REFF_ID");
-        }catch (Exception e){
-            e.printStackTrace();
-        }
+        String reff_id = sessionManager.getSessionString("reff_id");
 
+        loadCandidate(reff_id);
+        txt_reff.setText(reff_id);
         btn_share.setOnClickListener(v->{
             Intent sharingIntent = new Intent(android.content.Intent.ACTION_SEND);
             sharingIntent.setType("text/plain");
-            String shareBody = "Untuk mendukung A IWAN SAPUTRA menjadi Bupati Tasikmalaya 2020-2025, pastikan anda dan keluarga anda TERDAFTAR dalam Aplikasi SUARAKU.\n" +
-                    "Untuk mendaftar sebagai pendukung A IWAN SAPUTRA silahkan Klik link berikut ini https://bit.ly/2qhVBQb\n" +
-                    "kemudian masukan ID Rujukan "+Kode_ajakan;
             sharingIntent.putExtra(android.content.Intent.EXTRA_SUBJECT, "Mengajak");
             sharingIntent.putExtra(android.content.Intent.EXTRA_TEXT, shareBody);
-            startActivity(Intent.createChooser(sharingIntent, "Share via"));
+            startActivity(Intent.createChooser(sharingIntent, "Bagikan Melalui"));
+        });
+    }
+
+    private void loadCandidate(String reff){
+        String token = sessionManager.getSessionString("token");
+        Call<HashMap<String, Object>> call = candidateService.getCandidate2(token);
+        call.enqueue(new Callback<HashMap<String, Object>>() {
+            @Override
+            public void onResponse(Call<HashMap<String, Object>> call, Response<HashMap<String, Object>> response) {
+                String message = response.body().get("message").toString();
+                Boolean success = Boolean.parseBoolean(response.body().get("success").toString());
+                if(success) {
+                    Map<String, Object> data = (Map<String, Object>) response.body().get("data");
+                    Gson gson = new Gson();
+                    String json = gson.toJson(data);
+                    Candidate candidate = gson.fromJson(json, Candidate.class);
+                    shareBody = candidate.getCANPROMOSI() + "\n kemudian masukan ID Rujukan *"+ reff + "*";
+                }
+            }
+
+            @Override
+            public void onFailure(Call<HashMap<String, Object>> call, Throwable t) {
+
+            }
         });
     }
 }
